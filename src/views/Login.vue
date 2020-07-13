@@ -53,7 +53,7 @@
                     confirmPassword:'',
                     email:''
                 },
-                url:'http:localhost:8080/user/login',
+                url:'http://localhost:8080/user/login',
                 registerVisible:false,
                 formLabelWidth:'120px'
             }
@@ -64,7 +64,7 @@
                     alert('输入完整的用户名和密码');
                     return ;
                 }
-                this.$router.push('/homePage')
+                console.log(this.url)
                 $.post(this.url,this.user,(data,status) => {
                     console.log(status)
                     if(data == 1){
