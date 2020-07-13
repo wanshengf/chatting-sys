@@ -6,9 +6,14 @@ Vue.use(VueRouter)
   const routes = [
   {
     path: '/',
-    name: 'test',
+    name: 'login',
     component: () => import('../views/Login')
-  }
+  },
+    {
+      path: '/homePage',
+      name: 'homepage',
+      component: () => import('../views/HomePage')
+    }
 ]
 
 const router = new VueRouter({
