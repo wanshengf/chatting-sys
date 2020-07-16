@@ -60,16 +60,20 @@
         },
         methods:{
             login:function () {
-                if(this.user.userName == '' || this.user.password == ''){
+                if(this.user.id == '' || this.user.password == ''){
                     alert('输入完整的用户名和密码');
                     return ;
                 }
                 console.log(this.url)
+
                 $.post(this.url,this.user,(data,status) => {
                     console.log(status)
                     if(data == 1){
+                        sessionStorage.setItem('isLogin','1')
+                        sessionStorage.setItem('userId',this.user.id)
                         this.$router.push('/homePage');
                     }else {
+                        sessionStorage.setItem('isLogin','0')
                         alert('密码错误')
                     }
                 })

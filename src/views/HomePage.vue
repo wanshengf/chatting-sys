@@ -47,10 +47,10 @@
             },
             toChatList:function () {
                 console.log('hello')
-                this.$router.push('./homePage/ChatList')
+                this.$router.push('/homePage/ChatList')
             },
             toFriendList:function () {
-                this.$router.push({path:'./homePage/FriendList'})
+                this.$router.push({path:'/homePage/FriendList'})
             },
             toOther:function(){
 
