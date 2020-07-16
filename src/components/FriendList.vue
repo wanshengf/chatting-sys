@@ -1,5 +1,6 @@
 <template>
     <div>
+<!--        中间框-->
         <div class="fl wp35 hInherit" style="background-color: rgb(233,233,233)">
             <!--            搜索栏-->
             <div id="search"
@@ -26,24 +27,51 @@
 <!--                <friend></friend>-->
 <!--                好友组-->
                 <group :friend-group="groups"></group>
-                <friend v-for="friend in friends" :friend-group="friend" :key="friend.id"></friend>
+                <friend v-for="friend in friends" :friend-group="friend" :key="friend.id"
+                        :conpoment-change="changeComponent"></friend>
             </div>
-        </div>
 
+        </div>
+<!--        右侧框-->
+        <div class="fl" style="width: 400px;height: 500px;">
+<!--            <component is="FriendMessage" :user-message="singleFriend"></component>-->
+            <component is="GroupMessage" :group-message="singleGroup"></component>
+        </div>
     </div>
 </template>
 <script>
     import Friend from './FriendComponents/Friend'
-    import Group from "./FriendComponents/Group";
+    import Group from "./FriendComponents/Group"
+    import GroupMessage from './FriendComponents/GroupMessage'
+    import FriendMessage from './FriendComponents/FriendMessage'
     export default {
         components:{
             Friend,
-            Group
+            Group,
+            GroupMessage,
+            FriendMessage
         },
         data(){
             return{
                 friends:[],
-                groups:[]
+                singleFriend: {
+                    avatar:'/images/boy-03.png',
+                    id:1,
+                    sign:'人生自古税务司',
+                    username:'小华'
+                },
+                singleGroup:[
+                    {
+                        id:'',
+                        username:'',
+                        sign:'',
+                        avatar:'',
+                        sex:'',
+                        status:''
+                    }
+                ],
+                groups:[],
+                componentChange:'FriendMessage'
             }
         },
         methods:{
@@ -61,7 +89,13 @@
                         console.log('获取用户信息成功');
                     }
                 })
+            },
+            changeComponent:function (arg1) {
+                this.singleFriend = arg1
             }
+        },
+        computed:{
+
         },
         mounted() {
             this.getFriendMessage();
