@@ -12,7 +12,21 @@ Vue.use(VueRouter)
     {
       path: '/homePage',
       name: 'homepage',
-      component: () => import('../views/HomePage')
+      component: () => import('../views/HomePage'),
+      children:[
+        {
+          path:'',
+          component: () => import('../components/ChatList')
+        },
+        {
+          path: 'ChatList',
+          component: () => import('../components/ChatList')
+        },
+        {
+          path: 'FriendList',
+          component: () => import('../components/FriendList')
+        }
+      ]
     }
 ]
 
