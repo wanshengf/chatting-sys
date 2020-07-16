@@ -25,6 +25,7 @@
 <!--&lt;!&ndash;                群聊&ndash;&gt;-->
 <!--                <friend></friend>-->
 <!--                好友组-->
+                <group :friend-group="groups"></group>
                 <friend v-for="friend in friends" :friend-group="friend" :key="friend.id"></friend>
             </div>
         </div>
@@ -33,25 +34,30 @@
 </template>
 <script>
     import Friend from './FriendComponents/Friend'
+    import Group from "./FriendComponents/Group";
     export default {
         components:{
-            Friend
+            Friend,
+            Group
         },
         data(){
             return{
-                friends:[]
+                friends:[],
+                groups:[]
             }
         },
         methods:{
             getFriendMessage:function () {
-                let url = 'http://localhost:8080/user/mine?userid=1'
+                let url = 'http://localhost:8080/user/mine?userid=2'
                 $.get(url,(data,status) => {
                     console.log(url)
                     let dataJson = JSON.parse(data)
                     console.log(dataJson)
                     if (dataJson.code == 0){
                         this.friends = dataJson.data.friend
+                        this.groups = dataJson.data.group
                         console.log(this.friends)
+                        console.log(this.groups)
                         console.log('获取用户信息成功');
                     }
                 })
