@@ -2,28 +2,41 @@
     <div class="w800 h500 fl relative homePage" style="background-color: #ffffff;border: 1px solid #cccccc">
 <!--        左侧栏-->
         <div class="fl wp15 hInherit relative" style="background-color: rgb(42,42,42);" >
-            <ul>
-                <li style="margin-top:20px"><a  @click="toImgMessage"><span class="iconfont" style="font-size: 30px">&#xe635;</span></a></li>
-                <li style="margin-top:20px"><a  @click="toChatList"><span class="iconfont" style="font-size: 30px">&#xe635;</span></a></li>
-                <li style="marin-top:20px"><a  @click="toFriendList"><span class="iconfont" style="font-size: 30px">&#xe635;</span></a></li>
-                <li style="margin-top:20px"><a  @click="toOther"><span class="iconfont" style="font-size: 30px">&#xe635;</span></a></li>
-                <li style="margin-top:20px"><span class="iconfont" style="font-size: 30px">&#xe64e;</span></li>
-                <li style="margin-top:20px"><span class="iconfont" style="font-size: 30px">&#xe64e;</span></li>
+            <ul id="ul1">
+                <li style="margin-top:20px"><a><img width="60" :src="img" alt="无法显示" style="font-size: 4px"></a></li>
+
+                <li style="margin-top:20px">
+                    <a  @click="toChatList()">
+                        <span class="iconfont icon-liaotian"></span>
+                    </a>
+                </li>
+
+                <li style="margin-top:20px">
+                    <a  @click="toFriendList">
+                        <span class="iconfont icon-yonghu"></span>
+                    </a>
+                </li>
+                <li style="margin-top:20px">
+                    <a  @click="toOther"><span class="iconfont icon-shoucang"></span>
+                    </a>
+                </li>
+                <li style="margin-top:20px">
+                    <span class="iconfont icon-wenjian"></span></li>
+                <li style="margin-top:20px">
+                    <span class="iconfont icon-kanyikan"></span></li>
             </ul>
+
             <ul style="margin-top:40px">
-                <li style="margin-top:20px">
-                    <a href="#" @click="chat">
-                        <span class="iconfont" style="font-size: 30px">&#xe63f;</span>
+
+                <li style="margin-top:80px">
+                    <a @click="chat">
+                        <span class="iconfont icon-shouji"></span>
                     </a>
                 </li>
+
                 <li style="margin-top:20px">
                     <a href="#" @click="chat">
-                        <span class="iconfont" style="font-size: 30px">&#xe63f;</span>
-                    </a>
-                </li>
-                <li style="margin-top:20px">
-                    <a href="#" @click="chat">
-                        <span class="iconfont" style="font-size: 30px">&#xe63f;</span>
+                        <span class="iconfont icon-gengduo"></span>
                     </a>
                 </li>
             </ul>
@@ -35,7 +48,20 @@
     export default {
         data(){
             return{
-
+                mine:{
+                    id:Number,
+                    username:String,
+                    sign:String,
+                    status:String,
+                    avatar:String,
+                    sex: Number
+                }
+            }
+        },
+        computed:{
+            img:function () {
+                console.log(this.mine.avatar)
+                return 'http://localhost:8080'+this.mine.avatar
             }
         },
         methods:{
@@ -46,7 +72,6 @@
 
             },
             toChatList:function () {
-                console.log('hello')
                 this.$router.push('/homePage/ChatList')
             },
             toFriendList:function () {
@@ -55,18 +80,22 @@
             toOther:function(){
 
             },
-            ttt:function () {
-                document.querySelector('#testId2').height =
-                    15 + document.querySelector('#textTest1').offsetHeight +'px'
-                document.querySelector('#testId3').height =
-                    25 + document.querySelector('#textTest2').offsetHeight +'px'
-            },
-            beforeEnter:function () {
-                this.ttt()
+            getUserMessage:function () {
+                let url = 'http://localhost:8080/user/mine?userid='+sessionStorage.getItem('userId')
+                $.get(url,(data,status) => {
+                    console.log(url)
+                    let dataJson = JSON.parse(data)
+                    console.log(dataJson)
+                    if (dataJson.code == 0){
+                        this.mine = dataJson.data.mine
+                        console.log(this.mine)
+                        console.log('获取用户信息成功');
+                    }
+                })
             }
         },
         mounted() {
-            this.ttt()
+            this.getUserMessage()
         }
     }
 </script>
