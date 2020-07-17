@@ -51,8 +51,9 @@
                 background-color: rgb(245,245,245);
                 overflow: scroll;
                 border-top: #cccccc;">
-                <chat-others :user-get-message="receivedMessage"></chat-others>
-                <chat-myself :user-send-message="sendMessage"></chat-myself>
+<!--                <chat-others :user-get-message="receivedMessage"></chat-others>-->
+<!--                <chat-myself :user-send-message="sendMessage"></chat-myself>-->
+                <chat-module v-for="item in sendAndReceivedMessage" :chat-message="item"></chat-module>
             </div>
             <!--            聊天发送框-->
             <div style="width: 100%;height: 100px;background-color: rgb(255,255,255);border-top: #cccccc;" >
@@ -65,10 +66,14 @@
 <script>
     import ChatMyself from "./ChatComponents/ChatMyself";
     import ChatOthers from "./ChatComponents/ChatOthers";
+    import Test from "./ChatComponents/Test";
+    import ChatModule from "./ChatComponents/ChatModule";
     export default {
         components:{
             ChatOthers,
-            ChatMyself
+            ChatMyself,
+            Test,
+            ChatModule
         },
         props:{
 
@@ -128,16 +133,26 @@
                     notice:'',
                     avatar:'',
                     user_id:32,
-                }
+                },
+                myMessage:{
+                    id: Number,
+                    username:String,
+                    sign:String,
+                    status:String,
+                    avatar:String,
+                    sex:Number
+                },
+                sendAndReceivedMessage:[
+                    // {
+                    //     messageType:Boolean,
+                    //     id:Number,
+                    //     username:String,
+                    //     context:String
+                    // }
+                ]
             }
         },
         methods:{
-            adjustHeight:function () {
-                document.querySelector('.testId2').style.height =
-                    15 + document.querySelector('#textTest1').offsetHeight +'px'
-                document.querySelector('.testId3').style.height =
-                    25 + document.querySelector('#textTest2').offsetHeight +'px'
-            },
             wsConnect:function () {
                 if (this.ws == null){
                     this.ws = new WebSocket('ws://127.0.0.1:8082/ws')
@@ -147,14 +162,11 @@
                             type: "connect",
                             dataMap: {
                                 userid: "1",
-                            },
-                            extand: "",
-                            sendtime:""
+                            }
                         };
+                        msg.dataMap.userid = sessionStorage.getItem('userId')
                          let msgJson =  JSON.stringify(msg);
                         ws.send(msgJson)
-
-                        // console.log(ws.readyState)
                     }
                     ws.onmessage = function (event) {
                         let received_msg = event.data;
@@ -168,13 +180,20 @@
             sendMsg:function () {
                 //发送到服务端
                 let ws = this.ws;
+                this.sendMessageToWS.extand = '1'
+                let time = new Date()
+                this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
                 ws.send(JSON.stringify(this.sendMessageToWS))
 
-                //测试
-                $('.chatContext').append('<chat-myself ></chat-myself>')
-
                 //本地聊天框渲染
-                this.sendMessage.context = this.sendMessageToWS.dataMap.context
+                let message = new Object()
+                message.messageType = true
+                message.id = sessionStorage.getItem('userId')
+                message.username = this.myMessage.username
+                message.context = this.sendMessageToWS.dataMap.context
+                message.avatar = this.myMessage.avatar
+                this.sendAndReceivedMessage =  this.sendAndReceivedMessage.concat(message)
+                console.log(this.sendAndReceivedMessage)
 
                 this.sendMessageToWS.dataMap.context = ''
             },
@@ -191,6 +210,8 @@
                         //删除第一个模板元素
                         this.userMessage.shift()
                         // console.log('好有对象'+this.userMessage)
+                        //获取本人信息
+                        this.myMessage = dataJson.data.mine
                         //获取群组列表
                         this.groupMessage = this.groupMessage.concat(dataJson.data.group)
                         this.groupMessage.shift()
@@ -199,16 +220,25 @@
             },
             changeChat:function (event) {
                 //  更新发送的用户信息
-                let id = event.currentTarget.id
+                let id = event.currentTarget.id         //好友列表的用户id
                 for (let item of this.userMessage){
+                    //初始化receivedMessage
                     if (item.id == id){
                         this.toUserMessage = item
+                        this.receivedMessage.avatar = item.avatar
+                        this.receivedMessage.id = item.id
+                        this.receivedMessage.username = item.username
                     }
-                }
-                //  更新发送信息的配置
-                this.sendMessage.dataMap.toid = id
 
-                this.sendMessage.dataMap.fromid = sessionStorage.getItem('userId')
+                }
+                //存储本人信息
+                this.sendMessage.username = this.myMessage.username
+                this.sendMessage.avatar = this.myMessage.avatar
+                //  更新发送信息的配置
+                this.sendMessageToWS.dataMap.toid = id
+                this.sendMessageToWS.dataMap.fromid = sessionStorage.getItem('userId')
+
+                console.log(sessionStorage.getItem('userId'))
                 // console.log('fromId'+this.sendMessage.dataMap.fromid)
             }
         },
@@ -222,7 +252,6 @@
 
         },
         mounted() {
-            // this.adjustHeight();
             this.wsConnect();
             this.getUserMessage()
         }
