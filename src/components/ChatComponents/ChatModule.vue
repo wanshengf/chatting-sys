@@ -1,7 +1,7 @@
 <template>
     <div>
         <!--                别人发信息过来的块级元素-->
-        <div name="user1" style="position: relative;width: 100%;" class="div2" v-show = "!storeMessage.messageType">
+        <div name="user1" style="position: relative;width: 100%;" class="div2" v-show = "!storeMessage.messageType && IdLabel == storeMessage.id">
             <img style="display: inline-block;float:left;margin-right: 0;margin-top: 5px" :src="'http://localhost:8080'+storeMessage.avatar" alt="无法显示" width="30">
             <span style="float: left;margin-left: 12px;margin-top: 1px;color: #cccccc">{{storeMessage.username}}</span>
             <span class="textTest1"
@@ -26,7 +26,7 @@
             <div class="clear"></div>
         </div>
         <!--                自己发信息过去的块级元素-->
-        <div name="user2" style="position: relative;" class="div1" v-show="storeMessage.messageType">
+        <div name="user2" style="position: relative;" class="div1" v-show="storeMessage.messageType && storeMessage.toId == IdLabel">
             <img :src="'http://localhost:8080'+storeMessage.avatar" alt="无法显示" width="30" style="float:right;margin-right: 10px;margin-top: 10px;">
             <span style="position: absolute;
                         color: #cccccc;
@@ -58,7 +58,8 @@
 <script>
     export default {
         props:{
-            ChatMessage:Object
+            ChatMessage:Object,
+            IdLabel:String
         },
         components:{
 
@@ -66,10 +67,11 @@
         data(){
             return{
                 // storeMessage:{
-                //     messageType:Boolean,   //1：自己发送的  0：好友发送的
-                //     id:Number,
+                //     messageType:Boolean,   //true：自己发送的  false：好友发送的
+                //     id:Number,             //  自己的id              好友的id
                 //     username:String,
                 //     context:String
+                //      toId:sting              //发送到的id  如果是 则渲染
                 // }
             }
         },

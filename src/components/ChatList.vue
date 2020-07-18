@@ -53,7 +53,7 @@
                 border-top: #cccccc;">
 <!--                <chat-others :user-get-message="receivedMessage"></chat-others>-->
 <!--                <chat-myself :user-send-message="sendMessage"></chat-myself>-->
-                <chat-module v-for="item in sendAndReceivedMessage" :chat-message="item" :key="item.id"></chat-module>
+                <chat-module v-for="item in sendAndReceivedMessage" :id-label="idLabel" :chat-message="item" :key="item.id"></chat-module>
             </div>
             <!--            聊天发送框-->
             <div style="width: 100%;height: 100px;background-color: rgb(255,255,255);border-top: #cccccc;" >
@@ -148,8 +148,12 @@
                     //     id:Number,
                     //     username:String,
                     //     context:String
+                    //      avatar:String
+                    //      toId:String
                     // }
-                ]
+                ],
+                idLabel:"2",
+
             }
         },
         methods:{
@@ -168,9 +172,23 @@
                          let msgJson =  JSON.stringify(msg);
                         ws.send(msgJson)
                     }
-                    ws.onmessage = function (event) {
-                        let received_msg = event.data;
-                        console.log(event.data)
+                    ws.onmessage = (event) => {
+                        //接收的数据处理
+                        let msg = JSON.parse(event.data)
+                        console.log(msg)
+                        let received_msg = {}
+                        received_msg.id = msg.dataMap.fromid
+                        for (let item of this.userMessage){
+                            if (item.id == received_msg.id){
+                                received_msg.username = item.username
+                                received_msg.context = msg.dataMap.context
+                                received_msg.messageType = false
+                                received_msg.avatar = item.avatar
+                            }
+                        }
+                        console.log('received_msg')
+                        console.log(received_msg)
+                        this.sendAndReceivedMessage = this.sendAndReceivedMessage.concat(received_msg)
                         // console.log(received_msg)
                     }
                     ws.onclose = function () {
@@ -188,7 +206,7 @@
                 //时间格式  Wed Jul 15 15:13:23 CST 2020
                 this.sendMessageToWS.sendtime = timeArr[0]+' '+timeArr[1]+' '+timeArr[2]
                     +' '+timeArr[4]+' CST '+timeArr[3]
-                this.sendMessageToWS.sendtime = 'Wed Jul 15 15:13:23 CST 2020'
+                this.sendMessageToWS.sendtime = 'Jul 18, 2020 1:45:47 PM'
                 // this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
                 ws.send(JSON.stringify(this.sendMessageToWS))
 
@@ -199,6 +217,7 @@
                 message.username = this.myMessage.username
                 message.context = this.sendMessageToWS.dataMap.context
                 message.avatar = this.myMessage.avatar
+                message.toId = this.sendMessageToWS.dataMap.toid
                 this.sendAndReceivedMessage =  this.sendAndReceivedMessage.concat(message)
 
                 this.sendMessageToWS.dataMap.context = ''
@@ -244,7 +263,9 @@
                 this.sendMessageToWS.dataMap.toid = id
                 this.sendMessageToWS.dataMap.fromid = sessionStorage.getItem('userId')
 
-                console.log(sessionStorage.getItem('userId'))
+                //读取并渲染存储在sendAndReceivedMessage的信息
+                this.idLabel = id
+
                 // console.log('fromId'+this.sendMessage.dataMap.fromid)
             }
         },
