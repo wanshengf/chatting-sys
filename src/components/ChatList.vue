@@ -53,7 +53,7 @@
                 border-top: #cccccc;">
 <!--                <chat-others :user-get-message="receivedMessage"></chat-others>-->
 <!--                <chat-myself :user-send-message="sendMessage"></chat-myself>-->
-                <chat-module v-for="item in sendAndReceivedMessage" :chat-message="item"></chat-module>
+                <chat-module v-for="item in sendAndReceivedMessage" :chat-message="item" :key="item.id"></chat-module>
             </div>
             <!--            聊天发送框-->
             <div style="width: 100%;height: 100px;background-color: rgb(255,255,255);border-top: #cccccc;" >
@@ -170,6 +170,7 @@
                     }
                     ws.onmessage = function (event) {
                         let received_msg = event.data;
+                        console.log(event.data)
                         // console.log(received_msg)
                     }
                     ws.onclose = function () {
@@ -182,7 +183,13 @@
                 let ws = this.ws;
                 this.sendMessageToWS.extand = '1'
                 let time = new Date()
-                this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
+                let timeArr =  time.toString().split(' ')
+                //字符串存储格式  Sat Jul 18 2020 13:35:45 GMT+0800 (中国标准时间)
+                //时间格式  Wed Jul 15 15:13:23 CST 2020
+                this.sendMessageToWS.sendtime = timeArr[0]+' '+timeArr[1]+' '+timeArr[2]
+                    +' '+timeArr[4]+' CST '+timeArr[3]
+                this.sendMessageToWS.sendtime = 'Wed Jul 15 15:13:23 CST 2020'
+                // this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
                 ws.send(JSON.stringify(this.sendMessageToWS))
 
                 //本地聊天框渲染
@@ -193,7 +200,6 @@
                 message.context = this.sendMessageToWS.dataMap.context
                 message.avatar = this.myMessage.avatar
                 this.sendAndReceivedMessage =  this.sendAndReceivedMessage.concat(message)
-                console.log(this.sendAndReceivedMessage)
 
                 this.sendMessageToWS.dataMap.context = ''
             },
@@ -253,7 +259,7 @@
         },
         mounted() {
             this.wsConnect();
-            this.getUserMessage()
+            this.getUserMessage();
         }
     }
 </script>
