@@ -83,13 +83,9 @@
             getUserMessage:function () {
                 let url = 'http://localhost:8080/user/mine?userid='+sessionStorage.getItem('userId')
                 $.get(url,(data,status) => {
-                    console.log(url)
                     let dataJson = JSON.parse(data)
-                    console.log(dataJson)
                     if (dataJson.code == 0){
                         this.mine = dataJson.data.mine
-                        console.log(this.mine)
-                        console.log('获取用户信息成功');
                     }
                 })
             }

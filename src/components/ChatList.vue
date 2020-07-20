@@ -13,13 +13,16 @@
                           transform: translate(-50%,-50%);"
                           placeholder="未开发"></el-input>
                 <span   @click=""
-                        style="position: absolute;right: 5%;top: 30%;font-size: 40px;
-                        padding: 5px;
-                        background-color: rgb(219,219,219);">+</span>
+                        id="icon-my-jia"
+                        class="iconfont icon-jia"
+                        >
+
+                </span>
+
             </div>
             <!--            聊天各种对话信息栏-->
             <div id="chatSlider" style="height: 400px;width: 100%;overflow: scroll;">
-                <!--                聊天对话单元-->
+                <!--                好友聊天对话单元 -->
                 <div @click="changeChat($event)" :id="item.id" style="width: 100%;height: 75px;position: relative;" v-for="item of userMessage" :key="item.id">
                     <img :src="'http://localhost:8080'+item.avatar" width="60"
                          style="position: absolute;left: 10px;top: 10px;"
@@ -35,6 +38,22 @@
                     <span style="position: absolute;bottom: 10px;left: 75px;color: #cccccc">{{item.sign}}</span>
                     <span style="position: absolute;color: #cccccc;top: 10px;right: 30px">11:22</span>
                 </div>
+                <!--                群组对话单元-->
+                <div @click="changeGroupChat($event)" :id="item.id" style="width: 100%;height: 75px;position: relative;" v-for="item of groupMessage" :key="item.id+1">
+                    <img :src="'http://localhost:8080'+item.avatar" width="60"
+                         style="position: absolute;left: 10px;top: 10px;"
+                         alt="加载失败">
+                    <span
+                            style="position: absolute;
+                          background-color: red;
+                          border-radius: 6px;
+                          top: 8px;
+                          left: 66px;
+                          width: 12px;height: 12px;"></span>
+                    <span style="position: absolute;top: 10px;left: 75px;color: black">{{item.groupname}}</span>
+                    <span style="position: absolute;bottom: 10px;left: 75px;color: #cccccc">{{item.notice}}</span>
+                    <span style="position: absolute;color: #cccccc;top: 10px;right: 30px">11:22</span>
+                </div>
             </div>
         </div>
         <!--        聊天框-->
@@ -42,7 +61,8 @@
             <!--            聊天框头-->
             <div style="width: 100%;height: 100px;position: relative;">
                 <h1 style="position: absolute;left: 20px;top:40px">{{toUserMessage.username}}</h1>
-                <span style="position: absolute;right: 50px;top:40px;font-size: 40px">···</span>
+                <span   id="icon-my-gengduo"
+                        class="iconfont icon-gengduo1"></span>
             </div>
             <!--            聊天对话框-->
             <div class="chatContext"
@@ -53,7 +73,20 @@
                 border-top: #cccccc;">
 <!--                <chat-others :user-get-message="receivedMessage"></chat-others>-->
 <!--                <chat-myself :user-send-message="sendMessage"></chat-myself>-->
-                <chat-module v-for="item in sendAndReceivedMessage" :id-label="idLabel" :chat-message="item" :key="item.id"></chat-module>
+                <chat-module v-for="(item,index) in sendAndReceivedMessage"
+                             v-show="!isGroupChat"
+                             :id-label="idLabel"
+                             :chat-message="item"
+                             :key="index"></chat-module>
+                <chat-group-module
+                        v-for="(item,index) in sendAndReceivedGroupMessage"
+                        v-show="isGroupChat"
+                        :id-group-label="idGroupLabel"
+                        :group-message="item"
+                        :key="index+'-only'"
+                >
+
+                </chat-group-module>
             </div>
             <!--            聊天发送框-->
             <div style="width: 100%;height: 100px;background-color: rgb(255,255,255);border-top: #cccccc;" >
@@ -68,12 +101,14 @@
     import ChatOthers from "./ChatComponents/ChatOthers";
     import Test from "./ChatComponents/Test";
     import ChatModule from "./ChatComponents/ChatModule";
+    import ChatGroupModule from './ChatComponents/ChatGroupModule'
     export default {
         components:{
             ChatOthers,
             ChatMyself,
             Test,
-            ChatModule
+            ChatModule,
+            ChatGroupModule
         },
         props:{
 
@@ -112,21 +147,21 @@
                         avatar:''
                     }
                 ],
+                groupMessage:[      //存储所有的群组对话信息
+                    {
+                        id:'',
+                        groupname:'',
+                        notice:'',
+                        avatar:'',
+                        user_id:''
+                    }
+                ],
                 toUserMessage:{     //要发送信息的用户
                     id:'',
                     username: '',
                     sign:'',
                     avatar:''
                 },
-                groupMessage:[      //存储所有的群组对话信息
-                    {
-                        id:0,
-                        groupname:'',
-                        notice:'',
-                        avatar:'',
-                        user_id:32,
-                    }
-                ],
                 toGroupMessage:{
                     id:0,
                     groupname:'',
@@ -152,8 +187,43 @@
                     //      toId:String
                     // }
                 ],
-                idLabel:"2",
+                idLabel:"2",    //记录正在与哪个好友聊天
+                idGroupLabel:"",
+                sendGroupMessage:{
+                    type:'groupChat',
+                    dataMap:{
+                        fromid:'',
+                        groupid:'',
+                        context:''
+                    },
+                    extend:'',
+                    sendtime:''
+                },
+                receivedGroupMessage:{
+                    type:'groupChat',
+                    dataMap:{
+                        fromid:'',
+                        groupid:'',
+                        context:''
+                    },
+                    extand:'',
+                    sendtime:''
+                },
+                sendAndReceivedGroupMessage:[
+                    // {
+                    //     messageType:Boolean, //true 自己发送  false 他人发送的
+                    //     id:String, //发送者的id
+                    //     username:String,
+                    //     groupId:String,  //发送到群的id
+                    //     groupName:String,
+                    //     context:String,
+                    //     avatar:String
+                    // }
+                ],
+                isGroupChat: Boolean,
+                groupMemberMessage:[
 
+                ]
             }
         },
         methods:{
@@ -175,21 +245,34 @@
                     ws.onmessage = (event) => {
                         //接收的数据处理
                         let msg = JSON.parse(event.data)
-                        console.log(msg)
                         let received_msg = {}
-                        received_msg.id = msg.dataMap.fromid
-                        for (let item of this.userMessage){
-                            if (item.id == received_msg.id){
-                                received_msg.username = item.username
-                                received_msg.context = msg.dataMap.context
-                                received_msg.messageType = false
-                                received_msg.avatar = item.avatar
+                        if (msg.type == 'singleChat'){
+                            //接收单聊信息
+                            received_msg.id = msg.dataMap.fromid
+                            for (let item of this.userMessage){
+                                if (item.id == received_msg.id){
+                                    received_msg.username = item.username
+                                    received_msg.context = msg.dataMap.context
+                                    received_msg.messageType = false
+                                    received_msg.avatar = item.avatar
+                                }
                             }
+                            this.sendAndReceivedMessage = this.sendAndReceivedMessage.concat(received_msg)
+                        }else {
+                            //接收群聊信息
+                            received_msg.messageType = false
+                            received_msg.id = msg.dataMap.fromid
+                            received_msg.groupId = msg.dataMap.groupid
+                            received_msg.context = msg.dataMap.context
+                            for (let item of this.groupMemberMessage) {
+                                if (parseInt(item.id) == parseInt(received_msg.id)){
+                                    received_msg.username = item.username
+                                    received_msg.avatar = item.avatar
+                                }
+                            }
+                            this.sendAndReceivedGroupMessage = this.sendAndReceivedGroupMessage.concat(received_msg)
                         }
-                        console.log('received_msg')
-                        console.log(received_msg)
-                        this.sendAndReceivedMessage = this.sendAndReceivedMessage.concat(received_msg)
-                        // console.log(received_msg)
+
                     }
                     ws.onclose = function () {
                         console.log('连接已关闭')
@@ -197,53 +280,74 @@
                 }
             },
             sendMsg:function () {
-                //发送到服务端
                 let ws = this.ws;
-                this.sendMessageToWS.extand = '1'
-                let time = new Date()
-                let timeArr =  time.toString().split(' ')
-                //字符串存储格式  Sat Jul 18 2020 13:35:45 GMT+0800 (中国标准时间)
-                //时间格式  Wed Jul 15 15:13:23 CST 2020
-                this.sendMessageToWS.sendtime = timeArr[0]+' '+timeArr[1]+' '+timeArr[2]
-                    +' '+timeArr[4]+' CST '+timeArr[3]
-                this.sendMessageToWS.sendtime = 'Jul 18, 2020 1:45:47 PM'
-                // this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
-                ws.send(JSON.stringify(this.sendMessageToWS))
+                if (!this.isGroupChat) {     //单聊发送
+                    //发送到服务端
+                    this.sendMessageToWS.extand = '1'
+                    let time = new Date()
+                    let timeArr =  time.toString().split(' ')
+                    //字符串存储格式  Sat Jul 18 2020 13:35:45 GMT+0800 (中国标准时间)
+                    //时间格式  Wed Jul 15 15:13:23 CST 2020
+                    this.sendMessageToWS.sendtime = timeArr[0]+' '+timeArr[1]+' '+timeArr[2]
+                        +' '+timeArr[4]+' CST '+timeArr[3]
+                    this.sendMessageToWS.sendtime = 'Jul 18, 2020 1:45:47 PM'
+                    // this.sendMessageToWS.sendtime = new Date().toString().replace('+',' ').replace(' (中国标准时间)','')
+                    ws.send(JSON.stringify(this.sendMessageToWS))
 
-                //本地聊天框渲染
-                let message = new Object()
-                message.messageType = true
-                message.id = sessionStorage.getItem('userId')
-                message.username = this.myMessage.username
-                message.context = this.sendMessageToWS.dataMap.context
-                message.avatar = this.myMessage.avatar
-                message.toId = this.sendMessageToWS.dataMap.toid
-                this.sendAndReceivedMessage =  this.sendAndReceivedMessage.concat(message)
+                    //本地聊天框渲染
+                    let message = new Object()
+                    message.messageType = true
+                    message.id = sessionStorage.getItem('userId')
+                    message.username = this.myMessage.username
+                    message.context = this.sendMessageToWS.dataMap.context
+                    message.avatar = this.myMessage.avatar
+                    message.toId = this.sendMessageToWS.dataMap.toid
+                    this.sendAndReceivedMessage =  this.sendAndReceivedMessage.concat(message)
 
+                } else {  //多聊发送
+                    this.sendGroupMessage.dataMap.context = this.sendMessageToWS.dataMap.context
+                    ws.send(JSON.stringify(this.sendGroupMessage))
+
+                    //本地聊天框渲染
+                    let message = new Object()
+                    message.messageType = true
+                    message.id = sessionStorage.getItem('userId')
+                    message.context = this.sendGroupMessage.dataMap.context
+                    message.avatar =  this.myMessage.avatar
+                    message.username = this.myMessage.username
+                    message.groupId = this.sendGroupMessage.dataMap.groupid
+                    this.sendAndReceivedGroupMessage = this.sendAndReceivedGroupMessage.concat(message)
+                }
                 this.sendMessageToWS.dataMap.context = ''
             },
-            getUserMessage:function () {
+            getUserAndGroupMessage:function () {
                 let url = 'http://localhost:8080/user/mine?userid='+sessionStorage.getItem('userId')
                 $.get(url,(data,status) => {
-                    // console.log(url)
                     let dataJson = JSON.parse(data)
-                    // console.log(dataJson)
                     if (dataJson.code == 0){
+                        //获取用户信息
                         for (let item of dataJson.data.friend){
                             this.userMessage =  this.userMessage.concat(item.list)
                         }
+                        //获取群组信息
+                        for (let item of dataJson.data.group) {
+                            console.log('groupMessage')
+                            console.log(item)
+                            this.groupMessage = this.groupMessage.concat(item)
+                        }
                         //删除第一个模板元素
                         this.userMessage.shift()
+                        this.groupMessage.shift()
+                        console.log('this.groupMessage')
+                        console.log(this.groupMessage)
                         // console.log('好有对象'+this.userMessage)
                         //获取本人信息
                         this.myMessage = dataJson.data.mine
-                        //获取群组列表
-                        this.groupMessage = this.groupMessage.concat(dataJson.data.group)
-                        this.groupMessage.shift()
                     }
                 })
             },
             changeChat:function (event) {
+                this.isGroupChat = false
                 //  更新发送的用户信息
                 let id = event.currentTarget.id         //好友列表的用户id
                 for (let item of this.userMessage){
@@ -262,11 +366,38 @@
                 //  更新发送信息的配置
                 this.sendMessageToWS.dataMap.toid = id
                 this.sendMessageToWS.dataMap.fromid = sessionStorage.getItem('userId')
-
                 //读取并渲染存储在sendAndReceivedMessage的信息
                 this.idLabel = id
+            },
+            changeGroupChat:function (event) {
+                //获取聊天组的id
+                this.isGroupChat = true;
+                let id = event.currentTarget.id;
+                //  获取群组信息
+                let url = 'http://localhost:8080/user/mermber?groupid=' + id
+                $.get(url,(data,status) => {
+                    let dataObject = JSON.parse(data)
+                    console.log(dataObject)
+                    this.groupMemberMessage = dataObject.data.list
+                })
 
-                // console.log('fromId'+this.sendMessage.dataMap.fromid)
+                //获取点击后的群id
+                for (let item of this.groupMessage) {
+                    if (item.id == id) {
+                        this.toUserMessage = {
+                            id:'',
+                            username: '',
+                            sign:'',
+                            avatar:''
+                        }
+                        this.toUserMessage.username = item.groupname
+                        this.sendGroupMessage.dataMap.fromid = sessionStorage.getItem('userId')
+                        this.sendGroupMessage.dataMap.groupid = id
+                        this.sendGroupMessage.extend = '1'
+                        this.sendGroupMessage.sendtime = 'Jul 18, 2020 1:45:47 PM'
+                    }
+                }
+                console.log(this.sendGroupMessage)
             }
         },
         watch:{
@@ -280,11 +411,32 @@
         },
         mounted() {
             this.wsConnect();
-            this.getUserMessage();
+            this.getUserAndGroupMessage();
         }
     }
 </script>
 <style>
+    #icon-my-jia{
+        position: absolute;
+        right: 5%;
+        top: 33%;
+        padding: 1px;
+        background-color: rgb(219,219,219);
+        border-radius: 3px;
+    }
+    #icon-my-jia:hover{
+        background-color: rgb(200,200,200);
+        cursor: pointer;
+    }
+    #icon-my-gengduo{
+        position: absolute;
+        right: 50px;
+        top:40px;
+        font-size: 40px;
+    }
+    #icon-my-gengduo:hover{
+        cursor: pointer;
+    }
     .test1{
         font-size: 14px;
         max-width: 50px;

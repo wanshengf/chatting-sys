@@ -76,17 +76,12 @@
         },
         methods:{
             getFriendMessage:function () {
-                let url = 'http://localhost:8080/user/mine?userid=2'
+                let url = 'http://localhost:8080/user/mine?userid='+sessionStorage.getItem('userId')
                 $.get(url,(data,status) => {
-                    console.log(url)
                     let dataJson = JSON.parse(data)
-                    console.log(dataJson)
                     if (dataJson.code == 0){
                         this.friends = dataJson.data.friend
                         this.groups = dataJson.data.group
-                        console.log(this.friends)
-                        console.log(this.groups)
-                        console.log('获取用户信息成功');
                     }
                 })
             },

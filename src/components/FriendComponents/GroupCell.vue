@@ -20,7 +20,7 @@
         },
         computed:{
             img:function () {
-                return  'http://localhost:8080/'+this.group.avatar
+                return  'http://localhost:8080'+this.group.avatar
             },
             notice:function(){
                 if (this.group.length > 6)
