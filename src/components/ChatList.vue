@@ -71,15 +71,13 @@
                 background-color: rgb(245,245,245);
                 overflow: scroll;
                 border-top: #cccccc;">
-<!--                <chat-others :user-get-message="receivedMessage"></chat-others>-->
-<!--                <chat-myself :user-send-message="sendMessage"></chat-myself>-->
                 <chat-module v-for="(item,index) in sendAndReceivedMessage"
                              v-show="!isGroupChat"
                              :id-label="idLabel"
                              :chat-message="item"
                              :key="index"></chat-module>
                 <chat-group-module
-                        v-for="(item,index) in sendAndReceivedGroupMessage"
+                        v-for="(item,index) of sendAndReceivedGroupMessage"
                         v-show="isGroupChat"
                         :id-group-label="idGroupLabel"
                         :group-message="item"
@@ -228,9 +226,12 @@
         },
         methods:{
             wsConnect:function () {
+                console.log('test 初始化')
+                console.log(this.ws)
                 if (this.ws == null){
                     this.ws = new WebSocket('ws://127.0.0.1:8082/ws')
                     let ws = this.ws
+                    console.log('进入测试')
                     ws.onopen = function () {
                         let msg = {
                             type: "connect",
@@ -241,10 +242,14 @@
                         msg.dataMap.userid = sessionStorage.getItem('userId')
                          let msgJson =  JSON.stringify(msg);
                         ws.send(msgJson)
+                        console.log('连接成功')
                     }
-                    ws.onmessage = (event) => {
+
+                    ws.onmessage =  (event) => {
+                        window.console.log('onmessage')
                         //接收的数据处理
                         let msg = JSON.parse(event.data)
+                        window.console.log(msg)
                         let received_msg = {}
                         if (msg.type == 'singleChat'){
                             //接收单聊信息
@@ -260,19 +265,38 @@
                             this.sendAndReceivedMessage = this.sendAndReceivedMessage.concat(received_msg)
                         }else {
                             //接收群聊信息
+                            window.console.log('1231231')
                             received_msg.messageType = false
                             received_msg.id = msg.dataMap.fromid
                             received_msg.groupId = msg.dataMap.groupid
+
+                            //  获取群组成员信息
+                            // let url = 'http://localhost:8080/user/mermber?groupid=' + msg.dataMap.groupid
+                            // $.get(url,(data,status) => {
+                            //     let dataObject = JSON.parse(data)
+                            //     console.log(dataObject)
+                            //     this.groupMemberMessage = dataObject.data.list
+                            //     console.log('ws群组获取成员信息')
+                            //     console.log(this.groupMemberMessage)
+                            // })
+
                             received_msg.context = msg.dataMap.context
+                            window.console.log(this.groupMemberMessage)
                             for (let item of this.groupMemberMessage) {
+                                window.console.log('进入遍历群成员0')
                                 if (parseInt(item.id) == parseInt(received_msg.id)){
                                     received_msg.username = item.username
                                     received_msg.avatar = item.avatar
+                                    window.console.log('进入遍历群成员')
                                 }
                             }
                             this.sendAndReceivedGroupMessage = this.sendAndReceivedGroupMessage.concat(received_msg)
                         }
-
+                        console.log('this.sendAndReceivedGroupMessage')
+                        console.log(this.sendAndReceivedGroupMessage)
+                    }
+                    ws.onerror = (error) => {
+                        console.log(error)
                     }
                     ws.onclose = function () {
                         console.log('连接已关闭')
@@ -281,13 +305,15 @@
             },
             sendMsg:function () {
                 let ws = this.ws;
-                if (!this.isGroupChat) {     //单聊发送
-                    //发送到服务端
+                if (!this.isGroupChat) {
+                    //发送到服务端//单聊发送
                     this.sendMessageToWS.extand = '1'
                     let time = new Date()
                     let timeArr =  time.toString().split(' ')
-                    //字符串存储格式  Sat Jul 18 2020 13:35:45 GMT+0800 (中国标准时间)
-                    //时间格式  Wed Jul 15 15:13:23 CST 2020
+                    /*
+                    * 字符串存储格式  Sat Jul 18 2020 13:35:45 GMT+0800 (中国标准时间)
+                    * 时间格式  Wed Jul 15 15:13:23 CST 2020
+                    * */
                     this.sendMessageToWS.sendtime = timeArr[0]+' '+timeArr[1]+' '+timeArr[2]
                         +' '+timeArr[4]+' CST '+timeArr[3]
                     this.sendMessageToWS.sendtime = 'Jul 18, 2020 1:45:47 PM'
@@ -317,10 +343,14 @@
                     message.username = this.myMessage.username
                     message.groupId = this.sendGroupMessage.dataMap.groupid
                     this.sendAndReceivedGroupMessage = this.sendAndReceivedGroupMessage.concat(message)
+
+                    console.log('信息框')
+                    console.log(this.sendAndReceivedGroupMessage)
                 }
                 this.sendMessageToWS.dataMap.context = ''
             },
             getUserAndGroupMessage:function () {
+                console.log('consdofisfsdlfkjsdlkfj+=============测试')
                 let url = 'http://localhost:8080/user/mine?userid='+sessionStorage.getItem('userId')
                 $.get(url,(data,status) => {
                     let dataJson = JSON.parse(data)
@@ -373,15 +403,15 @@
                 //获取聊天组的id
                 this.isGroupChat = true;
                 let id = event.currentTarget.id;
-                //  获取群组信息
+                //  获取群组成员信息
                 let url = 'http://localhost:8080/user/mermber?groupid=' + id
                 $.get(url,(data,status) => {
                     let dataObject = JSON.parse(data)
                     console.log(dataObject)
                     this.groupMemberMessage = dataObject.data.list
                 })
-
-                //获取点击后的群id
+                this.idGroupLabel = id //设置id
+                //获取点击后的群id 初始化发送群组数据
                 for (let item of this.groupMessage) {
                     if (item.id == id) {
                         this.toUserMessage = {

@@ -16,6 +16,7 @@ Vue.use(VueRouter)
       children:[
         {
           path:'',
+          redirect:'ChatList',
           component: () => import('../components/ChatList')
         },
         {
